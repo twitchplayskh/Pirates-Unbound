@@ -1,12 +1,12 @@
-# 🏴‍☠️ Pirates-Unbound
+# 🏴‍☠️ Pirates! Unbound
 
 ### A modern widescreen, high-resolution and compatibility overhaul for Sid Meier's Pirates! (2004).
 
-**Pirates! Recharted** is a modernization project for the PC version of **Sid Meier's Pirates! (2004)**, focused on making the game work and look better on modern displays while preserving the style, gameplay and presentation of the original.
+**Pirates! Unbound** is a modernization project for the PC version of **Sid Meier's Pirates! (2004)**, focused on making the game work and look better on modern displays while preserving the style, gameplay and presentation of the original.
 
 The project currently provides proper **widescreen and high-resolution support**, including reworked parts of the game's presentation that were originally designed specifically around a 4:3 display.
 
-Rather than simply stretching the original image to fill a modern screen, Pirates! Recharted modifies the way scenes are positioned and presented so that the game feels much closer to having native widescreen support.
+Rather than simply stretching the original image to fill a modern screen, Pirates! Unbound modifies the way scenes are positioned and presented so that the game feels much closer to having native widescreen support.
 
 ---
 
@@ -16,7 +16,7 @@ The main goal is simple:
 
 > **Modernize Sid Meier's Pirates! for modern PCs without losing what makes the original game look and feel like Pirates!.**
 
-The project aims to:
+Pirates! Unbound aims to:
 
 - Preserve the original artwork
 - Preserve the original gameplay
@@ -34,7 +34,9 @@ Whenever possible, fixes are designed to be **resolution-independent** rather th
 
 # 🖥️ Widescreen Support
 
-Pirates! Recharted adds proper widescreen handling to areas of the game originally designed around **4:3 displays**.
+**Status: ✅ Implemented**
+
+Pirates! Unbound adds proper widescreen handling to areas of the game originally designed around **4:3 displays**.
 
 Currently supported target resolutions include:
 
@@ -66,7 +68,7 @@ Simply stretching the original presentation to 16:9 causes:
 - Unnatural empty areas
 - Misaligned presentation
 
-Pirates! Recharted instead **recomposes these scenes for widescreen**.
+Pirates! Unbound instead **recomposes these scenes for widescreen**.
 
 The system allows scenery to be positioned independently from the menu interface.
 
@@ -95,7 +97,7 @@ Instead of stretching the entire scene, town and landscape artwork can be moved 
 +------------------------------+
 ```
 
-### Pirates! Recharted Widescreen
+### Pirates! Unbound Widescreen
 
 ```text
 +------------------------------------------+
@@ -117,7 +119,7 @@ The result makes better use of the additional horizontal space while retaining t
 
 The additional horizontal space created by widescreen displays also requires parts of the game's backgrounds and atmospheric effects to cover a larger area.
 
-Pirates! Recharted extends suitable environmental and interface elements into this additional space.
+Pirates! Unbound extends suitable environmental and interface elements into this additional space.
 
 These can include:
 
@@ -168,11 +170,11 @@ This preserves the proportions of:
 
 # 🎨 Preserving the Original Artwork
 
-A core rule of Pirates! Recharted is:
+A core rule of Pirates! Unbound is:
 
 > **Move or extend artwork where appropriate — don't distort it.**
 
-The following should retain their original proportions:
+The following retain their original proportions:
 
 - Towns
 - Buildings
@@ -186,7 +188,7 @@ The following should retain their original proportions:
 
 Where a scene requires additional horizontal space, the preferred approach is to reposition existing scenery and extend safe environmental/background elements.
 
-The project is not intended to replace the game's original artistic direction.
+Pirates! Unbound is not intended to replace the game's original artistic direction.
 
 Instead, the goal is to make that artwork work naturally on modern displays.
 
@@ -211,7 +213,7 @@ This means the visual composition behind a menu can be adapted for widescreen wi
 
 # 📐 Resolution-Independent Design
 
-Pirates! Recharted does not rely on a collection of individual resolution hacks.
+Pirates! Unbound does not rely on a collection of individual resolution hacks.
 
 The widescreen system calculates the available display area dynamically.
 
@@ -224,15 +226,13 @@ float extraWidth = screenWidth - fourThreeWidth;
 
 This allows the game to determine how much additional horizontal space is available.
 
-For example:
-
 | Resolution | Original 4:3 Area | Additional Width |
 |---|---:|---:|
 | 1920×1080 | 1440×1080 | 480 px |
 | 2560×1440 | 1920×1440 | 640 px |
 | 3840×2160 | 2880×2160 | 960 px |
 
-Instead of stretching scenery across this additional width, Pirates! Recharted can reposition individual scene elements appropriately.
+Instead of stretching scenery across this additional width, Pirates! Unbound can reposition individual scene elements appropriately.
 
 This allows the same system to work naturally at multiple resolutions.
 
@@ -257,7 +257,7 @@ Additional widescreen width:
 480 pixels
 ```
 
-The additional horizontal space is handled dynamically by the widescreen system.
+The additional horizontal space is handled dynamically by Pirates! Unbound.
 
 ---
 
@@ -311,7 +311,7 @@ Town/location scenery and widescreen effects adjust automatically to the larger 
 
 **Status: 🔬 Under Investigation**
 
-High-refresh-rate support is another area being investigated for Pirates! Recharted.
+High-refresh-rate support is another area being investigated for Pirates! Unbound.
 
 Sid Meier's Pirates! was developed long before modern:
 
@@ -325,7 +325,7 @@ displays became commonplace.
 
 Simply removing an old game's frame-rate restriction can cause unexpected problems if gameplay or animation logic is tied to the number of rendered frames.
 
-For this reason, Pirates! Recharted is investigating the game's timing systems before attempting to provide high-FPS support.
+For this reason, Pirates! Unbound is investigating the game's timing systems before attempting to provide high-FPS support.
 
 ---
 
@@ -374,7 +374,7 @@ A time-independent system would instead behave more like:
 position += velocity * deltaTime;
 ```
 
-For this reason, Pirates! Recharted will not simply remove frame-rate restrictions without first understanding the game's timing behaviour.
+For this reason, Pirates! Unbound will not simply remove frame-rate restrictions without first understanding the game's timing behaviour.
 
 The goal of any future high-FPS implementation is:
 
@@ -411,7 +411,7 @@ If gameplay simulation is tied to frame rate, rendering and simulation may need 
 
 # 🛠️ Development Philosophy
 
-Pirates! Recharted follows several important principles.
+Pirates! Unbound follows several important principles.
 
 ### Preserve the original game
 
@@ -447,7 +447,7 @@ Rendering, animation and simulation systems should be understood before invasive
 
 # 📋 Project Status & Roadmap
 
-### Widescreen
+## Widescreen
 
 - [x] Widescreen project foundation
 - [x] Resolution-independent widescreen calculations
@@ -462,7 +462,7 @@ Rendering, animation and simulation systems should be understood before invasive
 - [x] Mouse/menu interaction preserved
 - [ ] Ultrawide support and testing
 
-### Performance & Compatibility
+## Performance & Compatibility
 
 - [ ] Frame limiter investigation
 - [ ] Animation timing investigation
@@ -480,7 +480,7 @@ Individual scenes and unusual aspect ratios may still require additional testing
 
 # 🧪 Current Development Status
 
-Pirates! Recharted is under active development.
+Pirates! Unbound is under active development.
 
 The core widescreen implementation is working, but the project should still be considered experimental while additional parts of the game are tested.
 
@@ -500,7 +500,7 @@ Please report any screens that do not display correctly.
 
 When reporting a problem, please include:
 
-- Pirates! Recharted version
+- Pirates! Unbound version
 - Game version
 - Resolution
 - Aspect ratio
@@ -537,7 +537,7 @@ If you discover something useful, consider opening an issue or pull request.
 
 # ⚠️ Disclaimer
 
-**Pirates-Unbound is an unofficial fan-made project.**
+**Pirates! Unbound is an unofficial fan-made project.**
 
 It is not affiliated with, endorsed by, or associated with Firaxis Games, 2K, Sid Meier, or the original developers and publishers of Sid Meier's Pirates!.
 
@@ -549,10 +549,10 @@ Original game assets should not be distributed with this project unless their re
 
 ---
 
-# 🏴‍☠️ Set Sail Again
+# 🏴‍☠️ Pirates! Unbound
 
 Sid Meier's Pirates! remains a unique game more than two decades after its original release.
 
-**Pirates! Recharted** aims to make sailing the Caribbean on a modern PC feel less like running a game designed around a 4:3 monitor in 2004 — while keeping the artwork, gameplay and character of the original intact.
+**Pirates! Unbound** aims to break the game free from the display and technical limitations of its era while keeping the artwork, gameplay and character of the original intact.
 
-### Wider seas. Same Pirates!.
+### Wider seas. Modern displays. Pirates! Unbound.
