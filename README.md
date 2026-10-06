@@ -1,70 +1,88 @@
 # Pirates-Unbound
-# 🏴‍☠️ Sid Meier's Pirates! Modernization Project
+# 🏴‍☠️ Pirates! Recharted
 
-A modern PC compatibility and enhancement project for **Sid Meier's Pirates! (2004)**, focused on improving the game for modern displays while preserving the look, gameplay and presentation of the original.
+### A modern widescreen, high-resolution and compatibility overhaul for Sid Meier's Pirates! (2004).
 
-The project currently focuses on **proper widescreen support**, including rebuilding parts of the game's presentation that were originally designed specifically around a 4:3 display.
+**Pirates! Recharted** is a modernization project for the PC version of **Sid Meier's Pirates! (2004)**, focused on making the game work and look better on modern displays while preserving the style, gameplay and presentation of the original.
 
-Rather than simply stretching the original image, the goal is to make Pirates! look and behave as though it had proper widescreen support from the beginning.
+The project currently provides proper **widescreen and high-resolution support**, including reworked parts of the game's presentation that were originally designed specifically around a 4:3 display.
+
+Rather than simply stretching the original image to fill a modern screen, Pirates! Recharted modifies the way scenes are positioned and presented so that the game feels much closer to having native widescreen support.
 
 ---
 
-## ⚓ Project Goals
+# ⚓ Project Goals
 
 The main goal is simple:
 
-> **Modernize the technical presentation of Sid Meier's Pirates! without changing what makes the original game look and feel like Pirates!.**
+> **Modernize Sid Meier's Pirates! for modern PCs without losing what makes the original game look and feel like Pirates!.**
 
-This means avoiding crude image stretching, distorted UI elements and changes to gameplay wherever possible.
+The project aims to:
 
-The project is being designed around resolution-independent fixes so that improvements are not restricted to one particular display resolution.
+- Preserve the original artwork
+- Preserve the original gameplay
+- Support modern resolutions
+- Properly adapt 4:3 scenes to widescreen
+- Avoid stretched or distorted artwork
+- Preserve existing menu and mouse behaviour
+- Remove old technical limitations where safely possible
+- Investigate high-refresh-rate support
+- Improve compatibility with modern PCs
+
+Whenever possible, fixes are designed to be **resolution-independent** rather than hard-coded for individual resolutions.
 
 ---
 
 # 🖥️ Widescreen Support
 
-The project adds proper widescreen handling to areas of the game that were originally designed for **4:3 displays**.
+Pirates! Recharted adds proper widescreen handling to areas of the game originally designed around **4:3 displays**.
 
-Target resolutions include:
+Currently supported target resolutions include:
 
-- 1920×1080
-- 2560×1440
-- 3840×2160 (4K)
-- Other 16:9 resolutions
-- Additional aspect ratios where possible
+- ✅ **1920×1080**
+- ✅ **2560×1440**
+- ✅ **3840×2160 (4K)**
+- ✅ **Other compatible 16:9 resolutions through dynamic scaling**
 
-The intention is to calculate layouts dynamically rather than maintain separate hacks for every resolution.
+The widescreen system calculates positioning based on the current resolution instead of relying on separate modifications for 1080p, 1440p and 4K.
+
+This allows the same system to scale automatically between different display resolutions.
 
 ---
 
-## 🏘️ Reworked Town & Location Screens
+# 🏘️ Reworked Town & Location Screens
 
-One of the more difficult parts of adding widescreen support to Pirates! is the game's town and location screens.
+**Status: ✅ Implemented**
 
-These screens combine illustrated scenery with interactive menus and were composed specifically for a 4:3 viewport.
+One of the biggest challenges when adding widescreen support to Pirates! is the game's town and location screens.
 
-Simply stretching them to 16:9 causes:
+These screens combine illustrated scenery with interactive menus and were originally composed specifically for a **4:3 viewport**.
+
+Simply stretching the original presentation to 16:9 causes:
 
 - Distorted buildings
 - Stretched mountains
 - Incorrect scenery proportions
 - Poorly positioned artwork
 - Unnatural empty areas
+- Misaligned presentation
 
-The project instead aims to **recompose these scenes for widescreen**.
+Pirates! Recharted instead **recomposes these scenes for widescreen**.
 
-For supported screens:
+The system allows scenery to be positioned independently from the menu interface.
 
-- Menu text remains in its intended position
-- Existing mouse interaction remains aligned with the menu
-- Town and scenery artwork can be repositioned independently
-- Town artwork is never horizontally stretched
-- Mountains retain their original proportions
-- Background and atmospheric effects can expand into the additional widescreen space
+This means:
 
-For example, town artwork that originally occupied the right side of a 4:3 composition can be moved toward the new right edge of a 16:9 display while the menu remains unchanged.
+- ✅ Menu text remains in its intended position
+- ✅ Existing mouse interaction remains aligned
+- ✅ Menu hitboxes remain unchanged
+- ✅ Town artwork can be repositioned independently
+- ✅ Towns are not horizontally stretched
+- ✅ Mountains retain their original proportions
+- ✅ Background effects can expand into widescreen space
+- ✅ The original artwork is preserved
 
-Conceptually:
+Instead of stretching the entire scene, town and landscape artwork can be moved toward the new widescreen boundary.
 
 ### Original 4:3
 
@@ -78,7 +96,7 @@ Conceptually:
 +------------------------------+
 ```
 
-### Widescreen
+### Pirates! Recharted Widescreen
 
 ```text
 +------------------------------------------+
@@ -90,32 +108,68 @@ Conceptually:
 +------------------------------------------+
 ```
 
-The intention is to use the **original game artwork**, not generate replacement scenery.
+The result makes better use of the additional horizontal space while retaining the proportions and appearance of the original artwork.
 
 ---
 
-# 🌊 Background Extension
+# 🌊 Extended Background Effects
 
-Extra widescreen space cannot always be filled by simply revealing more of the original scene.
+**Status: ✅ Implemented**
 
-The project is therefore investigating techniques for extending safe environmental elements such as:
+The additional horizontal space created by widescreen displays also requires parts of the game's backgrounds and atmospheric effects to cover a larger area.
+
+Pirates! Recharted extends suitable environmental and interface elements into this additional space.
+
+These can include:
 
 - Ocean
 - Sky
 - Clouds
 - Haze
 - Atmospheric gradients
-- Existing blue menu/background effects
+- Blue menu/background effects
 
-Recognizable artwork such as buildings, docks, trees and mountains should not simply be stretched to fill the additional space.
+Recognizable artwork such as buildings and mountains is kept at its intended aspect ratio rather than being stretched to fill the screen.
 
-Where possible, background and foreground layers are handled independently.
+Where possible, background and foreground elements are handled independently.
 
 ---
 
-# 🎨 Preserve the Original Artwork
+# 🏙️ Dynamic Scenery Positioning
 
-A core rule of the project is:
+**Status: ✅ Implemented**
+
+Town and location artwork can be repositioned independently from the game's interface.
+
+For example, artwork originally positioned near the right side of a 4:3 screen can now follow the right edge of a widescreen display.
+
+The amount of movement is calculated dynamically.
+
+This means that the scenery naturally adjusts between:
+
+**1080p → 1440p → 4K**
+
+without requiring separate positioning values for each resolution.
+
+Most importantly:
+
+> **The scenery moves. It does not stretch.**
+
+This preserves the proportions of:
+
+- Buildings
+- Mountains
+- Docks
+- Ships
+- Trees
+- Vegetation
+- Other recognizable scenery
+
+---
+
+# 🎨 Preserving the Original Artwork
+
+A core rule of Pirates! Recharted is:
 
 > **Move or extend artwork where appropriate — don't distort it.**
 
@@ -131,29 +185,36 @@ The following should retain their original proportions:
 - UI icons
 - Fonts
 
-Where a scene needs additional horizontal space, the preferred approach is to extend environmental/background elements and reposition existing scenery.
+Where a scene requires additional horizontal space, the preferred approach is to reposition existing scenery and extend safe environmental/background elements.
+
+The project is not intended to replace the game's original artistic direction.
+
+Instead, the goal is to make that artwork work naturally on modern displays.
 
 ---
 
 # 🖱️ Original Menu & Mouse Behaviour
 
-Widescreen modifications should not unnecessarily interfere with the game's menu logic.
+The widescreen modifications are designed to avoid unnecessarily interfering with the game's menu system.
 
 Where possible:
 
-- Menu text keeps its original layout
-- Selection markers remain aligned
-- Mouse hitboxes remain aligned with visible options
-- Text is not horizontally stretched
-- Fonts retain their original proportions
+- ✅ Menu text retains its original layout
+- ✅ Selection markers remain correctly aligned
+- ✅ Mouse hitboxes remain aligned with visible options
+- ✅ Fonts retain their original proportions
+- ✅ Menu text is not horizontally stretched
+- ✅ Background scenery can move independently from the interface
 
-The artwork behind a menu can therefore be recomposed without rebuilding the menu interaction system.
+This means the visual composition behind a menu can be adapted for widescreen without rebuilding the underlying menu interaction system.
 
 ---
 
 # 📐 Resolution-Independent Design
 
-The widescreen system is designed around the current render resolution rather than a collection of hard-coded offsets.
+Pirates! Recharted does not rely on a collection of individual resolution hacks.
+
+The widescreen system calculates the available display area dynamically.
 
 For example, the equivalent 4:3 width of a display can be calculated from its height:
 
@@ -162,53 +223,124 @@ float fourThreeWidth = screenHeight * (4.0f / 3.0f);
 float extraWidth = screenWidth - fourThreeWidth;
 ```
 
-This allows the same system to adapt naturally to different resolutions.
+This allows the game to determine how much additional horizontal space is available.
 
-Examples:
+For example:
 
-| Resolution | 4:3 Equivalent | Additional Width |
+| Resolution | Original 4:3 Area | Additional Width |
 |---|---:|---:|
 | 1920×1080 | 1440×1080 | 480 px |
 | 2560×1440 | 1920×1440 | 640 px |
 | 3840×2160 | 2880×2160 | 960 px |
 
-Rather than stretching scenery across that additional width, individual scene elements can be repositioned or extended appropriately.
+Instead of stretching scenery across this additional width, Pirates! Recharted can reposition individual scene elements appropriately.
+
+This allows the same system to work naturally at multiple resolutions.
 
 ---
 
-# 🧭 Current Development
+# 🖥️ 1080p Support
 
-The project is currently under active development.
+**Status: ✅ Implemented**
 
-Current work includes:
+1920×1080 is supported by the widescreen system.
 
-- Widescreen rendering
-- Resolution-independent positioning
-- 4:3 → 16:9 scene conversion
-- Town/location screen recomposition
-- Background extension
-- UI preservation
-- 1080p support
-- 1440p support
-- 4K support
+At 1080p:
 
-Additional screens will be investigated individually as development continues.
+```text
+Display:
+1920×1080
+
+Equivalent 4:3 area:
+1440×1080
+
+Additional widescreen width:
+480 pixels
+```
+
+The additional horizontal space is handled dynamically by the widescreen system.
+
+---
+
+# 🖥️ 1440p Support
+
+**Status: ✅ Implemented**
+
+2560×1440 is supported.
+
+At 1440p:
+
+```text
+Display:
+2560×1440
+
+Equivalent 4:3 area:
+1920×1440
+
+Additional widescreen width:
+640 pixels
+```
+
+Scene positioning scales automatically rather than relying on a separate 1440p-specific layout.
+
+---
+
+# 🖥️ 4K Support
+
+**Status: ✅ Implemented**
+
+3840×2160 is supported.
+
+At 4K:
+
+```text
+Display:
+3840×2160
+
+Equivalent 4:3 area:
+2880×2160
+
+Additional widescreen width:
+960 pixels
+```
+
+Town/location scenery and widescreen effects adjust automatically to the larger display area while preserving the proportions of the original artwork.
 
 ---
 
 # ⚡ High Frame Rate Investigation
 
-High-refresh-rate support is also being investigated.
+**Status: 🔬 Under Investigation**
 
-Sid Meier's Pirates! was developed long before modern 120 Hz, 144 Hz, 165 Hz and 240 Hz displays became common.
+High-refresh-rate support is another area being investigated for Pirates! Recharted.
 
-Before simply removing any frame-rate restrictions, the project is investigating how the game handles:
+Sid Meier's Pirates! was developed long before modern:
+
+- 60 Hz
+- 120 Hz
+- 144 Hz
+- 165 Hz
+- 240 Hz
+
+displays became commonplace.
+
+Simply removing an old game's frame-rate restriction can cause unexpected problems if gameplay or animation logic is tied to the number of rendered frames.
+
+For this reason, Pirates! Recharted is investigating the game's timing systems before attempting to provide high-FPS support.
+
+---
+
+# ⏱️ Animation & Timing Investigation
+
+The project is investigating how Pirates! handles:
 
 - Animation timing
 - Gameplay simulation
 - Character movement
 - Ship movement
-- Combat
+- Naval combat
+- Sword fighting
+- Dancing
 - Input
 - Camera movement
 - Particle effects
@@ -223,33 +355,37 @@ The objective is to determine which systems are:
 - Fixed-timestep based
 - Explicitly frame-limited
 
-### Why not just unlock the FPS?
+---
+
+# ⚠️ Why Not Just Unlock the FPS?
 
 Older games sometimes update gameplay according to rendered frames.
 
-A system written like:
+For example:
 
 ```cpp
 position += velocity;
 ```
 
-may run twice as quickly at 60 FPS if it was originally designed around 30 FPS.
+If this was originally expected to execute 30 times per second, executing it 60 or 120 times per second could dramatically increase movement speed.
 
-A time-independent implementation would instead behave more like:
+A time-independent system would instead behave more like:
 
 ```cpp
 position += velocity * deltaTime;
 ```
 
-For this reason, the project will not blindly remove the game's frame-rate limit.
+For this reason, Pirates! Recharted will not simply remove frame-rate restrictions without first understanding the game's timing behaviour.
 
-The timing system will be investigated first so that higher rendering rates can eventually be supported **without changing gameplay speed or behaviour**.
+The goal of any future high-FPS implementation is:
+
+> **Higher visual frame rates without changing the speed or behaviour of the original game.**
 
 ---
 
 # 🔬 High-FPS Testing
 
-Testing is planned at:
+Testing and reverse engineering will investigate behaviour at:
 
 - 30 FPS
 - 60 FPS
@@ -268,73 +404,96 @@ Particular attention will be given to:
 - Input timing
 - Particle effects
 - Cutscenes
+- Audio synchronization
 
-Any future high-FPS implementation should preserve the timing and gameplay behaviour of the original game.
+If gameplay simulation is tied to frame rate, rendering and simulation may need to be separated rather than simply removing the frame limiter.
 
 ---
 
 # 🛠️ Development Philosophy
 
-This project follows a few important principles.
+Pirates! Recharted follows several important principles.
 
 ### Preserve the original game
 
-This is an enhancement project, not a remake.
+This is an enhancement and compatibility project, not a remake.
+
+### Support modern displays properly
+
+Modern resolutions should receive properly adjusted layouts rather than simply stretching a 4:3 image.
 
 ### Avoid hard-coded resolution fixes
 
-Where possible, calculations should adapt automatically to the current resolution and aspect ratio.
+Where possible, calculations adapt automatically to the current resolution and aspect ratio.
 
-### Don't stretch artwork
+### Don't stretch recognizable artwork
 
 Repositioning original artwork is preferable to distorting it.
 
-### Don't change gameplay accidentally
+### Preserve the UI
 
-Visual improvements should not affect simulation speed, difficulty or input timing.
+Widescreen scenery modifications should not unnecessarily change menus or mouse interaction.
+
+### Don't accidentally change gameplay
+
+Visual improvements should not alter simulation speed, difficulty or input timing.
 
 ### Investigate before patching
 
 Older games often contain assumptions that aren't immediately obvious.
 
-Rendering, animation and simulation systems should be understood before making invasive changes.
+Rendering, animation and simulation systems should be understood before invasive changes are made.
 
 ---
 
-# 🧪 Experimental Project
+# 📋 Project Status & Roadmap
 
-This project is currently experimental.
-
-Expect:
-
-- Bugs
-- Incomplete screens
-- Rendering issues
-- Compatibility problems
-- Behaviour that changes between releases
-
-Back up your game files before testing development builds.
-
----
-
-# 📋 Planned / Investigated Features
+### Widescreen
 
 - [x] Widescreen project foundation
 - [x] Resolution-independent widescreen calculations
-- [ ] Complete 1920×1080 support
-- [ ] Complete 2560×1440 support
-- [ ] Complete 3840×2160 support
-- [ ] Reworked town/location screens
-- [ ] Dynamic scenery positioning
-- [ ] Extended menu/background effects
-- [ ] Ultrawide investigation
+- [x] 1920×1080 support
+- [x] 2560×1440 support
+- [x] 3840×2160 (4K) support
+- [x] Other compatible 16:9 resolutions through dynamic scaling
+- [x] Reworked town/location screens
+- [x] Dynamic scenery positioning
+- [x] Extended menu/background effects
+- [x] Original menu positioning preserved
+- [x] Mouse/menu interaction preserved
+- [ ] Ultrawide support and testing
+
+### Performance & Compatibility
+
 - [ ] Frame limiter investigation
 - [ ] Animation timing investigation
+- [ ] Gameplay timing investigation
 - [ ] 60+ FPS support
-- [ ] High-refresh-rate testing
-- [ ] Additional compatibility fixes
+- [ ] 120+ FPS testing
+- [ ] High-refresh-rate support
+- [ ] Additional modern-PC compatibility fixes
 
-The roadmap will change as more of the game's rendering and timing systems are understood.
+The core widescreen system is functional at **1080p, 1440p and 4K**, including the reworked town/location presentation.
+
+Individual scenes and unusual aspect ratios may still require additional testing and refinement as development continues.
+
+---
+
+# 🧪 Current Development Status
+
+Pirates! Recharted is under active development.
+
+The core widescreen implementation is working, but the project should still be considered experimental while additional parts of the game are tested.
+
+You may encounter:
+
+- Individual scenes that still require adjustment
+- Unusual aspect-ratio issues
+- Rendering edge cases
+- Compatibility issues
+- Features that change between releases
+
+Please report any screens that do not display correctly.
 
 ---
 
@@ -342,8 +501,8 @@ The roadmap will change as more of the game's rendering and timing systems are u
 
 When reporting a problem, please include:
 
+- Pirates! Recharted version
 - Game version
-- Mod version
 - Resolution
 - Aspect ratio
 - Windows version
@@ -351,7 +510,9 @@ When reporting a problem, please include:
 - Screenshot or video if applicable
 - Description of where the issue occurs
 
-For graphical problems, please mention the exact screen/location where the issue appears.
+For graphical problems, please include the exact town, menu, minigame or location where the issue appears.
+
+Screenshots are particularly useful for widescreen layout problems.
 
 ---
 
@@ -359,36 +520,40 @@ For graphical problems, please mention the exact screen/location where the issue
 
 Testing, reverse-engineering information and code contributions are welcome.
 
-If you discover information about the game's:
+Useful information includes discoveries about the game's:
 
 - Rendering pipeline
-- Internal resolutions
+- Internal resolution
+- Aspect-ratio handling
 - UI system
+- Town/location rendering
 - Animation system
 - Frame limiter
 - Timing system
 - DirectX behaviour
 
-please consider opening an issue or pull request.
+If you discover something useful, consider opening an issue or pull request.
 
 ---
 
 # ⚠️ Disclaimer
 
-This is an unofficial fan-made project.
+**Pirates! Recharted is an unofficial fan-made project.**
 
-It is not affiliated with, endorsed by, or associated with **Firaxis Games**, **2K**, or the original developers/publishers of Sid Meier's Pirates!.
+It is not affiliated with, endorsed by, or associated with Firaxis Games, 2K, Sid Meier, or the original developers and publishers of Sid Meier's Pirates!.
 
-Sid Meier's Pirates! and all associated names, artwork and assets belong to their respective owners.
+Sid Meier's Pirates! and all associated names, artwork, trademarks and assets belong to their respective owners.
 
 This project is intended to provide compatibility and visual improvements for legitimately owned copies of the game.
 
-No original game assets should be distributed with this project unless their redistribution is explicitly permitted.
+Original game assets should not be distributed with this project unless their redistribution is explicitly permitted.
 
 ---
 
-## 🏴‍☠️ Set Sail Again
+# 🏴‍☠️ Set Sail Again
 
-Sid Meier's Pirates! still holds up remarkably well years after its release.
+Sid Meier's Pirates! remains a unique game more than two decades after its original release.
 
-The aim of this project is to make returning to the Caribbean on a modern PC feel a little less like running a game from 2004 — without losing the character of the original.
+**Pirates! Recharted** aims to make sailing the Caribbean on a modern PC feel less like running a game designed around a 4:3 monitor in 2004 — while keeping the artwork, gameplay and character of the original intact.
+
+### Wider seas. Same Pirates!.
