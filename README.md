@@ -1,5 +1,4 @@
-# Pirates-Unbound
-# 🏴‍☠️ Pirates! Recharted
+# 🏴‍☠️ Pirates-Unbound
 
 ### A modern widescreen, high-resolution and compatibility overhaul for Sid Meier's Pirates! (2004).
 
