@@ -537,7 +537,7 @@ If you discover something useful, consider opening an issue or pull request.
 
 # ⚠️ Disclaimer
 
-**Pirates! Recharted is an unofficial fan-made project.**
+**Pirates-Unbound is an unofficial fan-made project.**
 
 It is not affiliated with, endorsed by, or associated with Firaxis Games, 2K, Sid Meier, or the original developers and publishers of Sid Meier's Pirates!.
 
