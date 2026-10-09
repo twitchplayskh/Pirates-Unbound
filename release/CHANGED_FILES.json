@@ -1,0 +1,120 @@
+{
+  "version": "0.1.0-beta.2",
+  "baseline": "v0.1.0-beta.1",
+  "baselineArchive": "Pirates-Unbound-v0.1.0-beta.1-Source.zip",
+  "baselineSha256": "efd12b4ce05c5099d4de1d3eb30dbe83dc3c5f6e59436a26f71dfb49b03adfa9",
+  "sourceArchiveSha256": "16956ca85897930fee2e1fc896f5c82e4c883033e20ef1302835a6bc8ecff92c",
+  "changedFiles": [
+    {
+      "path": "CHANGELOG.md",
+      "status": "modified",
+      "sha256": "416dec0c63461555aff458a3b7546d671d52aa547eb4912279006be54ef9c882"
+    },
+    {
+      "path": "README.md",
+      "status": "modified",
+      "sha256": "c2df573d9b532e1a17d06edd7b4aaee7846359afe36b3494d89c6c57c56f60fe"
+    },
+    {
+      "path": "RELEASE_NOTES.md",
+      "status": "modified",
+      "sha256": "ff1d338fc2a6a25cfc684e938d6522b3fbb866af28ef60bd8aba4fc5c13729c8"
+    },
+    {
+      "path": "VERSION",
+      "status": "modified",
+      "sha256": "5e57c96511349500ea25eab56275778151e3ed1a6af0672ead87e97b66721df5"
+    },
+    {
+      "path": "docs/CODE_NOTES-beta.2.md",
+      "status": "added",
+      "sha256": "1fecdd9ade1c742a446585597396f32f6f4ac62450b263a6dfad94453fa0305b"
+    },
+    {
+      "path": "docs/GITHUB_UPLOAD.md",
+      "status": "modified",
+      "sha256": "953b95790565ecae28b4a123286c1cd927f1d796193d188db02678560e8e12f9"
+    },
+    {
+      "path": "docs/experimental-wide-maps.md",
+      "status": "added",
+      "sha256": "4fc08fa5acda6c54c6e59f06ebf80a3a0fe599ad1b5bbedc5dd60c9b47c46153"
+    },
+    {
+      "path": "docs/map-decoration-trial.md",
+      "status": "added",
+      "sha256": "73cc164ea1d25cacfeefdbf1643cc4d61a722c36e4239347418fb6d4e08485ae"
+    },
+    {
+      "path": "docs/map-menu-discovery.md",
+      "status": "added",
+      "sha256": "e7c9297e4b3c4a946b0dab92f9f1fa0827bf2c28ab0f3be2e72643e7608fd8a4"
+    },
+    {
+      "path": "docs/texture-filtering.md",
+      "status": "added",
+      "sha256": "54569b5e0b45b7c41a7bf87b7d69f0d9b4fad9b1c0160c55afbe6c4e839e8116"
+    },
+    {
+      "path": "launcher/Filtering.cs",
+      "status": "added",
+      "sha256": "29a3aeeebfe0e73ea710d2bde1b2db4e2e3dc87a7166e97ba2accdb2505318d8"
+    },
+    {
+      "path": "launcher/Launcher.cs",
+      "status": "modified",
+      "sha256": "c6669cddb5298cfecfd7b803b9a5e19dec87112b87748a6fb4274c24856798cd"
+    },
+    {
+      "path": "src/cinematic-bars.h",
+      "status": "added",
+      "sha256": "e6d6853fecdd055f472f1b6669541abcb814dc53a65199db831bd15db6b8ccaa"
+    },
+    {
+      "path": "src/map-decoration.h",
+      "status": "added",
+      "sha256": "3ef31c543c0a30c295c8c8004d1ed7c31348267dd4ac102d272a81f40e0d5cbe"
+    },
+    {
+      "path": "src/map-expansion.h",
+      "status": "added",
+      "sha256": "b653436834bcdd14acd629c4ce49c821cb358f6d75e03df61e75e8ea1ff0f702"
+    },
+    {
+      "path": "src/texture-filtering.h",
+      "status": "added",
+      "sha256": "7f53033a1e49dc23dd844e43d02466e4b0a15be52968dab1711338685d93d4b0"
+    },
+    {
+      "path": "src/widescreen.cpp",
+      "status": "modified",
+      "sha256": "49259c31ad67a5225b450e1169f315532bf37bad33456b41930bac4802f89188"
+    },
+    {
+      "path": "tests/coordinates.cpp",
+      "status": "modified",
+      "sha256": "da95f1f8630c3b19ec8e714897129e58ba18466b58ea4c20e61e796386cddf15"
+    },
+    {
+      "path": "tests/map-expansion.cpp",
+      "status": "added",
+      "sha256": "c6d9b08519bde040471d728de9f187435eb62312b9b3c4ec502315d2b771dccc"
+    },
+    {
+      "path": "tests/texture-filtering.cpp",
+      "status": "added",
+      "sha256": "3682f29f40a0a1724816106486dfb832b0245cc497c0b9a992e571950aaf630f"
+    },
+    {
+      "path": "tools/build.ps1",
+      "status": "modified",
+      "sha256": "e130c27f351d998e3b63fcb5461d69b82fc7703d4254e201e42de436f11308d6"
+    },
+    {
+      "path": "tools/package.ps1",
+      "status": "modified",
+      "sha256": "50f273be1853944d18b15eac70405a642e7dd47480c9d7f6964f3048d5cc6a42"
+    }
+  ],
+  "deletedFiles": []
+}

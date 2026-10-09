@@ -16,8 +16,9 @@ using System.Xml.Serialization;
 public class Preferences {
  public int Width=2560, Height=1440;
  public bool Fullscreen=true, Patch=true, World=true, CenterUI=true, FillBackgrounds=true;
- public bool ExperimentalSailing120=false;
+ public bool ExperimentalSailing120=false, WideMaps=false;
  public int MSAA=4;
+ public int TextureFiltering=0, Anisotropy=0;
 }
 public class Recovery { public string Config, Backup; }
 static class Storage {
@@ -67,11 +68,11 @@ static class Storage {
   output.Append('\\',slashes*2);output.Append('"');return output.ToString();
  }
  public static string Hash(string path){using(var sha=SHA256.Create())using(var file=File.OpenRead(path))return BitConverter.ToString(sha.ComputeHash(file)).Replace("-","");}
- public static void Validate(Preferences p){if(p.Width<640||p.Width>3840||p.Height<480||p.Height>2160||3*p.Width<4*p.Height)throw new InvalidOperationException("Choose a resolution from 640×480 to 3840×2160, with a 4:3 or wider aspect ratio.");if(p.MSAA!=0&&p.MSAA!=2&&p.MSAA!=4&&p.MSAA!=8)throw new InvalidOperationException("Choose Off, 2×, 4× or 8× anti-aliasing.");}
+ public static void Validate(Preferences p){if(p.Width<640||p.Width>3840||p.Height<480||p.Height>2160||3*p.Width<4*p.Height)throw new InvalidOperationException("Choose a resolution from 640×480 to 3840×2160, with a 4:3 or wider aspect ratio.");if(p.MSAA!=0&&p.MSAA!=2&&p.MSAA!=4&&p.MSAA!=8)throw new InvalidOperationException("Choose Off, 2×, 4× or 8× anti-aliasing.");if(p.TextureFiltering<0||p.TextureFiltering>2||!new[]{0,2,4,8,16}.Contains(p.Anisotropy))throw new InvalidOperationException("Choose a listed texture filtering and anisotropy level.");}
 }
 static class Session {
  public static string RuntimeSettings(Preferences p){
-  return "[Widescreen]\r\nWorld="+(p.World?1:0)+"\r\nCenterUI="+(p.CenterUI?1:0)+"\r\nFillBackgrounds="+(p.FillBackgrounds?1:0)+"\r\nBorderless="+(p.Fullscreen?1:0)+"\r\nExperimentalSailing120="+(p.Patch&&p.ExperimentalSailing120?1:0)+"\r\nMSAA="+(p.Patch?p.MSAA:0)+"\r\n";
+  return "[Widescreen]\r\nWorld="+(p.World?1:0)+"\r\nCenterUI="+(p.CenterUI?1:0)+"\r\nFillBackgrounds="+(p.FillBackgrounds?1:0)+"\r\nMapExpansionTrial="+(p.Patch&&p.WideMaps?1:0)+"\r\nBorderless="+(p.Fullscreen?1:0)+"\r\nExperimentalSailing120="+(p.Patch&&p.ExperimentalSailing120?1:0)+"\r\nMSAA="+(p.Patch?p.MSAA:0)+"\r\nTextureFiltering="+(p.Patch?p.TextureFiltering:0)+"\r\nAnisotropy="+(p.Patch?p.Anisotropy:0)+"\r\n";
  }
  // Fullscreen preferences now mean a normal D3D window covering its monitor.
  // Keeping FullScreen=0 avoids exclusive-mode device loss on focus changes.
@@ -143,7 +144,8 @@ class LauncherForm:Form {
  readonly NumericUpDown width=new NumericUpDown(),height=new NumericUpDown();
  readonly ComboBox presets=new ComboBox();
  readonly ComboBox antialiasing=new ComboBox();
- readonly CheckBox fullscreen=new CheckBox(),patch=new CheckBox(),world=new CheckBox(),ui=new CheckBox(),backgrounds=new CheckBox(),sailing=new CheckBox();
+ readonly Button filtering=new Button();int textureFiltering,anisotropy;
+ readonly CheckBox fullscreen=new CheckBox(),patch=new CheckBox(),world=new CheckBox(),ui=new CheckBox(),backgrounds=new CheckBox(),sailing=new CheckBox(),wideMaps=new CheckBox();
  readonly Label status=new Label();
  readonly Button play=new Button(),save=new Button(),restore=new Button();
  readonly string exe;readonly string[] gameArgs;bool busy,syncing;
@@ -151,7 +153,7 @@ class LauncherForm:Form {
  public LauncherForm(string executable,string[] args){
   exe=executable;gameArgs=args;Text="Pirates! — Widescreen Launcher";
   AutoScaleMode=AutoScaleMode.None;
-  Font=new Font("Segoe UI",10);ClientSize=new Size(550,665);FormBorderStyle=FormBorderStyle.FixedDialog;MaximizeBox=false;StartPosition=FormStartPosition.CenterScreen;
+  Font=new Font("Segoe UI",10);ClientSize=new Size(550,705);FormBorderStyle=FormBorderStyle.FixedDialog;MaximizeBox=false;StartPosition=FormStartPosition.CenterScreen;
   BackColor=Color.FromArgb(24,34,43);ForeColor=Color.FromArgb(237,232,218);
   var title=AddLabel("Sid Meier’s Pirates!",24,18,500,42,new Font("Segoe UI",19,FontStyle.Bold));title.AutoSize=true;
   AddLabel("Widescreen settings",26,65,500,25,null);
@@ -170,22 +172,27 @@ class LauncherForm:Form {
   AddLabel(layoutOnly?"High-FPS research is disabled in this release.":"Unfinished: movement uses the original update rate.",45,465,475,28,new Font("Segoe UI",9));
   var controls=new Button{Text="Controls / hotkeys",Bounds=new Rectangle(26,504,220,32)};Controls.Add(controls);
   controls.Click+=(s,e)=>{try{using(var menu=new ControlsForm())menu.ShowDialog(this);}catch(Exception error){ShowError(error);}};
-  status.SetBounds(26,550,500,42);status.ForeColor=Color.FromArgb(183,197,209);Controls.Add(status);
-  restore.Text="Restore display";restore.SetBounds(26,619,139,32);save.Text="Save settings";save.SetBounds(185,619,139,32);play.Text="Play";play.SetBounds(365,617,155,36);
-  foreach(var button in new[]{restore,save,play,controls}){button.FlatStyle=FlatStyle.Flat;button.BackColor=Color.FromArgb(40,60,73);button.ForeColor=ForeColor;Controls.Add(button);}
+  filtering.Text="Texture filtering…";filtering.SetBounds(264,504,256,32);Controls.Add(filtering);
+  filtering.Click+=(s,e)=>{using(var menu=new FilteringForm(textureFiltering,anisotropy)){if(menu.ShowDialog(this)==DialogResult.OK){textureFiltering=menu.Filter;anisotropy=menu.Anisotropy;status.Text="Filtering selected. Save settings or Play to apply.";}}};
+  SetCheck(wideMaps,"Experimental: wider Caribbean and governor maps",26,548);
+  status.SetBounds(26,590,500,42);status.ForeColor=Color.FromArgb(183,197,209);Controls.Add(status);
+  restore.Text="Restore display";restore.SetBounds(26,659,139,32);save.Text="Save settings";save.SetBounds(185,659,139,32);play.Text="Play";play.SetBounds(365,657,155,36);
+  foreach(var button in new[]{restore,save,play,controls,filtering}){button.FlatStyle=FlatStyle.Flat;button.BackColor=Color.FromArgb(40,60,73);button.ForeColor=ForeColor;Controls.Add(button);}
   play.BackColor=Color.FromArgb(163,117,39);AcceptButton=play;
   var tip=new ToolTip();tip.SetToolTip(fullscreen,"Covers the monitor without exclusive fullscreen. Resolution selects the game's rendering size; the image fills the monitor. Leave unchecked for a normal window.");tip.SetToolTip(world,"Preserves vertical field of view and exposes additional world at the sides.");tip.SetToolTip(ui,"Includes the matching mouse-coordinate correction and UI clipping.");tip.SetToolTip(backgrounds,"Keeps captured world backgrounds aligned behind dialogs. Some painted backgrounds stretch.");
   tip.SetToolTip(sailing,"Targets 120 FPS only while sailing on the world map. Gameplay keeps its original update cadence. Experimental: interpolation, effects, and transitions are still being tested. Requires the patch; change applies on the next launch.");
+  tip.SetToolTip(wideMaps,"Shows additional stock coastline while keeping labels and controls at their original scale. Requires centered UI and filled backgrounds. Experimental: the decorative compass cutout retains its original 4:3 position. Falls back to the original chart if the stock pixels cannot be verified. Applies on next launch.");
   tip.SetToolTip(antialiasing,"Smooths polygon edges without a blur filter. Higher levels use more GPU memory and processing. Falls back to a supported lower level, or Off. Applies on the next launch.");
   using(var graphics=Graphics.FromHwnd(IntPtr.Zero)){
    float scale=graphics.DpiX/96f;
    if(scale>1.01f){foreach(Control control in Controls)control.Font=new Font(control.Font.FontFamily,control.Font.Size*scale,control.Font.Style);Scale(new SizeF(scale,scale));}
   }
   Preferences p=new Preferences();try{if(File.Exists(Storage.Prefs))p=Storage.Read<Preferences>(Storage.Prefs);Storage.Validate(p);}catch(Exception e){status.Text="Settings reset: "+e.Message;p=new Preferences();}
-  width.Value=p.Width;height.Value=p.Height;fullscreen.Checked=p.Fullscreen;patch.Checked=p.Patch;world.Checked=p.World;ui.Checked=p.CenterUI;backgrounds.Checked=p.FillBackgrounds;sailing.Checked=p.ExperimentalSailing120;antialiasing.SelectedIndex=p.MSAA==0?0:p.MSAA==2?1:p.MSAA==4?2:3;SyncPreset();EnableOptions();
+  width.Value=p.Width;height.Value=p.Height;fullscreen.Checked=p.Fullscreen;patch.Checked=p.Patch;world.Checked=p.World;ui.Checked=p.CenterUI;backgrounds.Checked=p.FillBackgrounds;sailing.Checked=p.ExperimentalSailing120;wideMaps.Checked=p.WideMaps;antialiasing.SelectedIndex=p.MSAA==0?0:p.MSAA==2?1:p.MSAA==4?2:3;SyncPreset();EnableOptions();
+  textureFiltering=p.TextureFiltering;anisotropy=p.Anisotropy;
   presets.SelectedIndexChanged+=(s,e)=>{if(!syncing&&presets.SelectedIndex<4){syncing=true;var sizes=new[]{new[]{1280,720},new[]{1920,1080},new[]{2560,1440},new[]{3840,2160}};width.Value=sizes[presets.SelectedIndex][0];height.Value=sizes[presets.SelectedIndex][1];syncing=false;}};
   width.ValueChanged+=(s,e)=>{if(!syncing)SyncPreset();};height.ValueChanged+=(s,e)=>{if(!syncing)SyncPreset();};
-  patch.CheckedChanged+=(s,e)=>EnableOptions();ui.CheckedChanged+=(s,e)=>EnableOptions();
+  patch.CheckedChanged+=(s,e)=>EnableOptions();ui.CheckedChanged+=(s,e)=>EnableOptions();backgrounds.CheckedChanged+=(s,e)=>EnableOptions();
   save.Click+=(s,e)=>{try{var prefs=GetPreferences();Storage.Validate(prefs);Storage.Write(Storage.Prefs,prefs);status.Text="Settings saved for the next Steam launch.";}catch(Exception error){ShowError(error);}};
   restore.Click+=(s,e)=>{try{status.Text=Storage.Recover()?"Original display settings restored.":"Your original display settings are already restored.";}catch(Exception error){ShowError(error);}};
   play.Click+=async(s,e)=>{
@@ -199,9 +206,9 @@ class LauncherForm:Form {
  Label AddLabel(string text,int x,int y,int w,int h,Font font){var label=new Label{Text=text};label.SetBounds(x,y,w,h);if(font!=null)label.Font=font;Controls.Add(label);return label;}
  void SetCheck(CheckBox control,string text,int x,int y){control.Text=text;control.SetBounds(x,y,490-x,30);control.AutoSize=true;Controls.Add(control);}
  void SyncPreset(){syncing=true;string value=width.Value+" × "+height.Value;presets.SelectedIndex=presets.Items.IndexOf(value);if(presets.SelectedIndex<0)presets.SelectedIndex=4;syncing=false;}
- void EnableOptions(){world.Enabled=ui.Enabled=antialiasing.Enabled=patch.Checked&&!busy;sailing.Enabled=patch.Checked&&!busy&&!layoutOnly;if(layoutOnly)sailing.Checked=false;backgrounds.Enabled=patch.Checked&&ui.Checked&&!busy;}
+ void EnableOptions(){world.Enabled=ui.Enabled=antialiasing.Enabled=filtering.Enabled=patch.Checked&&!busy;sailing.Enabled=patch.Checked&&!busy&&!layoutOnly;if(layoutOnly)sailing.Checked=false;backgrounds.Enabled=patch.Checked&&ui.Checked&&!busy;wideMaps.Enabled=patch.Checked&&ui.Checked&&backgrounds.Checked&&!busy;}
  void SetBusy(bool value){foreach(Control c in Controls)c.Enabled=!value;status.Enabled=true;EnableOptions();}
- Preferences GetPreferences(){return new Preferences{Width=(int)width.Value,Height=(int)height.Value,Fullscreen=fullscreen.Checked,Patch=patch.Checked,World=world.Checked,CenterUI=ui.Checked,FillBackgrounds=backgrounds.Checked,ExperimentalSailing120=sailing.Checked,MSAA=new[]{0,2,4,8}[antialiasing.SelectedIndex]};}
+ Preferences GetPreferences(){return new Preferences{Width=(int)width.Value,Height=(int)height.Value,Fullscreen=fullscreen.Checked,Patch=patch.Checked,World=world.Checked,CenterUI=ui.Checked,FillBackgrounds=backgrounds.Checked,ExperimentalSailing120=sailing.Checked,WideMaps=wideMaps.Checked,MSAA=new[]{0,2,4,8}[antialiasing.SelectedIndex],TextureFiltering=textureFiltering,Anisotropy=anisotropy};}
  void ShowError(Exception error){status.Text=error.Message;MessageBox.Show(this,error.Message,"Pirates! launcher",MessageBoxButtons.OK,MessageBoxIcon.Warning);}
 }
 static class Program {
@@ -232,6 +239,16 @@ static class Program {
    using(var reader=new StringReader("<Preferences><Width>3840</Width><Height>2160</Height></Preferences>"))
     if(((Preferences)legacy.Deserialize(reader)).ExperimentalSailing120)throw new Exception("Old settings unexpectedly enable experimental sailing");
    var experimental=new Preferences{ExperimentalSailing120=true};
+   foreach(int mode in new[]{0,1,2})foreach(int level in new[]{0,2,4,8,16}){
+    var filters=new Preferences{TextureFiltering=mode,Anisotropy=level};Storage.Validate(filters);
+    if(!Session.RuntimeSettings(filters).Contains("TextureFiltering="+mode+"\r\n")||!Session.RuntimeSettings(filters).Contains("Anisotropy="+level+"\r\n"))throw new Exception("Filtering settings lost");
+    using(var writer=new StringWriter()){legacy.Serialize(writer,filters);using(var reader=new StringReader(writer.ToString())){var copy=(Preferences)legacy.Deserialize(reader);if(copy.TextureFiltering!=mode||copy.Anisotropy!=level)throw new Exception("Filtering persistence failed");}}
+    filters.Patch=false;if(!Session.RuntimeSettings(filters).Contains("Anisotropy=0\r\n")||!Session.RuntimeSettings(filters).Contains("TextureFiltering=0\r\n"))throw new Exception("Filtering without patch");
+   }
+   foreach(var filters in new[]{new Preferences{TextureFiltering=3},new Preferences{Anisotropy=3}}){bool rejectedFilter=false;try{Storage.Validate(filters);}catch(InvalidOperationException){rejectedFilter=true;}if(!rejectedFilter)throw new Exception("Invalid filtering accepted");}
+   if(new Preferences().WideMaps||!Session.RuntimeSettings(new Preferences()).Contains("MapExpansionTrial=0\r\n"))throw new Exception("Wide map trial enabled by default");
+   var maps=new Preferences{WideMaps=true};if(!Session.RuntimeSettings(maps).Contains("MapExpansionTrial=1\r\n"))throw new Exception("Wide map preference lost");
+   maps.Patch=false;if(!Session.RuntimeSettings(maps).Contains("MapExpansionTrial=0\r\n"))throw new Exception("Wide maps enabled without patch");
    foreach(int level in new[]{0,2,4,8}){
     var aa=new Preferences{MSAA=level};Storage.Validate(aa);
     if(!Session.RuntimeSettings(aa).Contains("MSAA="+level+"\r\n"))throw new Exception("MSAA preference not passed to runtime");

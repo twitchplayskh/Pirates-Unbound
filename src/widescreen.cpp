@@ -44,15 +44,19 @@ static DrawIndexedUP originalDrawIndexedUP;
 #include "tavern-light.h"
 #include "sailing-observation.h"
 static bool closeTo(float a,float b);
+#include "cinematic-bars.h"
+#include "map-expansion.h"
+#include "map-decoration.h"
+#include "texture-filtering.h"
 // Stock full-screen NiScreenElements backgrounds occupy 640 by 480 units.
 // Widen only these quads; buttons, text and maps retain the 4:3 camera.
-enum class ScreenQuad { Other, Background, DialogueGradient, MapBacking };
+enum class ScreenQuad { Other, Background, DialogueGradient, MapBacking, CinematicBar };
 static ScreenQuad screenQuadKind(IDirect3DDevice9*d,INT base,UINT minimum,UINT count,UINT primitives){
  if(count!=4||primitives!=2)return ScreenQuad::Other;
  DWORD fvf=0;d->GetFVF(&fvf);if(fvf!=0x142)return ScreenQuad::Other;
  IDirect3DVertexBuffer9*vb=nullptr;UINT offset=0,stride=0;
  if(FAILED(d->GetStreamSource(0,&vb,&offset,&stride))||!vb)return ScreenQuad::Other;
- void*p=nullptr;bool full=false,gradient=false,map=false;const int first=base+minimum;
+ void*p=nullptr;bool full=false,gradient=false,map=false,bar=false;const int first=base+minimum;
  const auto readStart=profileEnabled?performanceTick():0;
  if(first>=0&&stride>=12&&SUCCEEDED(vb->Lock(offset+first*stride,count*stride,&p,D3DLOCK_READONLY))){
   full=true;gradient=true;map=true;unsigned corners=0;
@@ -67,15 +71,20 @@ static ScreenQuad screenQuadKind(IDirect3DDevice9*d,INT base,UINT minimum,UINT c
    if(!closeTo(std::fabs(v[0]),320)||std::fabs(v[1])>1.f||!closeTo(v[1],planeY)||(!closeTo(v[2],-200)&&!closeTo(v[2],240)))map=false;
    corners|=1u<<((v[0]>0?1:0)+(v[2]>0?2:0));
   }
-  full=full&&corners==15;gradient=gradient&&corners==15;map=map&&corners==15;vb->Unlock();
+  full=full&&corners==15;gradient=gradient&&corners==15;map=map&&corners==15;
+  if(stride==sizeof(CinematicBarVertex)&&closeTo(std::fabs(reinterpret_cast<float*>(p)[0]),321)&&closeTo(std::fabs(reinterpret_cast<float*>(p)[2]),20)){
+   D3DMATRIX world{};
+   if(SUCCEEDED(d->GetTransform(D3DTS_WORLD,&world)))bar=cinematicBarGeometry(static_cast<const CinematicBarVertex*>(p),world);
+  }
+  vb->Unlock();
  }
  if(profileEnabled){quadReadTicks+=performanceTick()-readStart;++quadReads;}
  vb->Release();
  if(full)return ScreenQuad::Background;
  if(map)return ScreenQuad::MapBacking;
- if(gradient){IDirect3DBaseTexture9*texture=nullptr;const HRESULT result=d->GetTexture(0,&texture);
+ if(gradient||bar){IDirect3DBaseTexture9*texture=nullptr;const HRESULT result=d->GetTexture(0,&texture);
   const bool untextured=SUCCEEDED(result)&&!texture;if(texture)texture->Release();
-  if(untextured)return ScreenQuad::DialogueGradient;
+  if(untextured)return bar?ScreenQuad::CinematicBar:ScreenQuad::DialogueGradient;
  }return ScreenQuad::Other;
 }
 // Add decorative parchment margins. The actual map,
@@ -151,6 +160,7 @@ struct UiDrawState{
   active=true;background=full;d->GetRenderState(D3DRS_SCISSORTESTENABLE,&enabled);d->GetScissorRect(&old);
   if(full){auto wide=projection;wide._11=2;originalTransform(d,D3DTS_PROJECTION,&wide);d->SetRenderState(D3DRS_SCISSORTESTENABLE,FALSE);}
   else{
+   if(mapExpansionEnabled&&mapExpandedFrame==frames.load()){d->SetRenderState(D3DRS_SCISSORTESTENABLE,FALSE);return;}
    D3DVIEWPORT9 viewport{};d->GetViewport(&viewport);RECT safe=uiClipRect(w,h,viewport);
    if(enabled){safe.left=std::max(safe.left,old.left);safe.top=std::max(safe.top,old.top);safe.right=std::min(safe.right,old.right);safe.bottom=std::min(safe.bottom,old.bottom);}
    d->SetScissorRect(&safe);d->SetRenderState(D3DRS_SCISSORTESTENABLE,TRUE);
@@ -169,13 +179,24 @@ static HRESULT WINAPI onDrawIndexed(IDirect3DDevice9*d,D3DPRIMITIVETYPE t,INT ba
  traceDraw(d,"indexed",primitives,base,minimum,count);
  forceTrace=false;
  const auto quad=d==targetDevice&&interfaceView?screenQuadKind(d,base,minimum,count,primitives):ScreenQuad::Other;
- if(quad==ScreenQuad::MapBacking)extendMapBacking(d,base,minimum);
+ // Omit only the verified cinematic masks, before any draw-state changes.
+ // Geometry, camera, subtitle draws and native cinematic timing stay intact.
+ if(quad==ScreenQuad::CinematicBar&&t==D3DPT_TRIANGLESTRIP&&centerUi&&widenWorld&&height.load()>0&&3ll*width.load()>4ll*height.load()){
+  D3DMATRIX view{},projection{};
+  if(SUCCEEDED(d->GetTransform(D3DTS_VIEW,&view))&&SUCCEEDED(d->GetTransform(D3DTS_PROJECTION,&projection))&&closeTo(view._43,640)&&closeTo(projection._33,2.5f)&&closeTo(projection._34,1)){
+   static unsigned notices=0;if(journal&&notices<4){++notices;std::fprintf(journal,"CINEMATIC mask omitted frame=%u\n",frames.load());std::fflush(journal);}
+   return S_OK;
+  }
+ }
+ if(quad==ScreenQuad::MapBacking){if(drawExpandedMap(d,base,minimum))return S_OK;extendMapBacking(d,base,minimum);}
+ if(drawMapDecoration(d,t,base,minimum,count,primitives))return S_OK;
  bool expand=quad==ScreenQuad::DialogueGradient||(quad==ScreenQuad::Background&&(fillBackgrounds||sceneComposite(d)));
  UiDrawState state(d,expand);
  TownDrawState town(d,base,minimum,count,primitives);
  TavernLightState light(d,base,minimum,count,primitives);
  sailingUiIndexed(d,t,base,minimum,count,start,primitives);
  const int observation=obsDraw(d,primitives);
+ TextureFilteringState filtering(d);
  return obsResult(observation,originalDrawIndexed(d,t,base,minimum,count,start,primitives));
 }
 static void fixExistingWorldCamera();
@@ -223,6 +244,7 @@ static HRESULT WINAPI onDrawIndexedUP(IDirect3DDevice9*d,D3DPRIMITIVETYPE t,UINT
 #endif
  traceDraw(d,"indexedUP",primitives,0,minimum,0);
  const int observation=obsDraw(d,primitives);
+ TextureFilteringState filtering(d);
  return obsResult(observation,originalDrawIndexedUP(d,t,minimum,count,primitives,indices,format,data,stride));
 }
 static HRESULT WINAPI onDrawUP(IDirect3DDevice9*d,D3DPRIMITIVETYPE t,UINT primitives,const void* data,UINT stride){
@@ -235,6 +257,7 @@ static HRESULT WINAPI onDrawUP(IDirect3DDevice9*d,D3DPRIMITIVETYPE t,UINT primit
   if(primitives==2&&stride>=12){std::fprintf(journal,"UP type=%u stride=%u",unsigned(t),stride);for(unsigned i=0;i<4;++i){auto v=reinterpret_cast<const float*>(static_cast<const unsigned char*>(data)+i*stride);std::fprintf(journal," v%u=%g,%g,%g",i,v[0],v[1],v[2]);}std::fputc('\n',journal);}
  }
  const int observation=obsDraw(d,primitives);
+ TextureFilteringState filtering(d);
  return obsResult(observation,originalDrawUP(d,t,primitives,data,stride));
 }
 static HRESULT WINAPI onDraw(IDirect3DDevice9*d,D3DPRIMITIVETYPE t,UINT first,UINT primitives){
@@ -245,6 +268,7 @@ static HRESULT WINAPI onDraw(IDirect3DDevice9*d,D3DPRIMITIVETYPE t,UINT first,UI
  const UINT count=t==D3DPT_TRIANGLESTRIP||t==D3DPT_TRIANGLEFAN?primitives+2:primitives*3;
  traceDraw(d,"primitive",primitives,first,0,count);
  const int observation=obsDraw(d,primitives);
+ TextureFilteringState filtering(d);
  return obsResult(observation,originalDraw(d,t,first,primitives));
 }
 extern "C" unsigned remapUiPacked(unsigned packed,unsigned message){
@@ -290,7 +314,7 @@ static HRESULT WINAPI onTransform(IDirect3DDevice9*d,D3DTRANSFORMSTATETYPE t,con
  return originalTransform(d,t,&fixed);
 }
 static void updateSize(IDirect3DDevice9*d){IDirect3DSurface9*bb=nullptr;if(SUCCEEDED(d->GetBackBuffer(0,0,D3DBACKBUFFER_TYPE_MONO,&bb))){D3DSURFACE_DESC desc{};bb->GetDesc(&desc);width=desc.Width;height=desc.Height;bb->Release();}}
-static HRESULT WINAPI onReset(IDirect3DDevice9*d,D3DPRESENT_PARAMETERS*p){if(d==targetDevice){obsDeviceReset();clearTownAssets();sailingUiClear();sailingDropBuffers();aaMain.release(d);}auto hr=originalReset(d,p);if(d==targetDevice&&SUCCEEDED(hr)){updateSize(d);interfaceView=false;}return hr;}
+static HRESULT WINAPI onReset(IDirect3DDevice9*d,D3DPRESENT_PARAMETERS*p){if(d==targetDevice){obsDeviceReset();clearMapExpansion();clearMapDecoration();clearTownAssets();sailingUiClear();sailingDropBuffers();aaMain.release(d);}auto hr=originalReset(d,p);if(d==targetDevice&&SUCCEEDED(hr)){updateSize(d);interfaceView=false;}return hr;}
 static HRESULT WINAPI onPresent(IDirect3DDevice9*d,const RECT*a,const RECT*b,HWND w,const RGNDATA*r){
  if(d==targetDevice)obsPresent();
  if(d==targetDevice)aaMain.resolve(d);
@@ -322,14 +346,21 @@ static DWORD WINAPI init(void*){
  fillBackgrounds=GetPrivateProfileIntA("Widescreen","FillBackgrounds",1,settingsPath)!=0;
  borderless=GetPrivateProfileIntA("Widescreen","Borderless",0,settingsPath)!=0;
  traceEnabled=GetPrivateProfileIntA("Widescreen","Trace",0,settingsPath)!=0;
+ mapExpansionEnabled=GetPrivateProfileIntA("Widescreen","MapExpansionTrial",0,settingsPath)!=0;
  sailingSeparate=GetPrivateProfileIntA("Widescreen","ExperimentalSailing120",0,settingsPath)!=0;
  aaRequested=GetPrivateProfileIntA("Widescreen","MSAA",0,settingsPath);
+ textureFiltering=GetPrivateProfileIntA("Widescreen","TextureFiltering",0,settingsPath);
+ if(textureFiltering<0||textureFiltering>2)textureFiltering=0;
+ anisotropyRequested=GetPrivateProfileIntA("Widescreen","Anisotropy",0,settingsPath);
+ if(anisotropyRequested!=2&&anisotropyRequested!=4&&anisotropyRequested!=8&&anisotropyRequested!=16)anisotropyRequested=0;
  if(aaRequested!=2&&aaRequested!=4&&aaRequested!=8)aaRequested=0;
 #ifdef PIRATES_LAYOUT_ONLY
  // Town release does not install the unfinished sailing redraw hooks.
  sailingSeparate=false;
 #endif
  GetModuleFileNameA(self,traceFolder,MAX_PATH);*(strrchr(traceFolder,'\\')+1)=0;
+ char mapTrialPath[MAX_PATH];std::snprintf(mapTrialPath,sizeof(mapTrialPath),"%smap-expansion.enabled",traceFolder);
+ mapExpansionEnabled=mapExpansionEnabled||GetFileAttributesA(mapTrialPath)!=INVALID_FILE_ATTRIBUTES;
  char path[MAX_PATH];GetModuleFileNameA(self,path,MAX_PATH);strcpy(strrchr(path,'\\')+1,"PiratesWide.log");journal=std::fopen(path,"w");if(!journal)return 1;
  auto base=reinterpret_cast<unsigned char*>(GetModuleHandleA(nullptr));
  const unsigned char camera[]={0x8b,0x02,0x89,0x81,0x28,0x01,0,0};
@@ -364,6 +395,7 @@ static DWORD WINAPI init(void*){
  }
  if(ok)ok=MH_CreateHook(base+0x2c170,reinterpret_cast<void*>(uiInputHook),&inputTrampoline)==MH_OK;
  if(ok)ok=MH_CreateHook(base+0xcce74,reinterpret_cast<void*>(frustumHook),&frustumTrampoline)==MH_OK;
+ if(ok&&mapExpansionEnabled)ok=installMapExpansion(base);
 #ifdef PIRATES_SAILING_OBSERVATION
  if(ok)ok=obsInstall(table);
 #endif
@@ -376,6 +408,6 @@ static DWORD WINAPI init(void*){
 #endif
  char profilePath[MAX_PATH];std::snprintf(profilePath,sizeof(profilePath),"%sprofile.enabled",traceFolder);
  if(ok&&GetFileAttributesA(profilePath)!=INVALID_FILE_ATTRIBUTES)std::fprintf(journal,"Sleep measurements=%s\n",installSleepMeasurements()?"available":"unavailable");
- std::fprintf(journal,"Pirates! Unbound 0.1.0-beta.1 init=%s size=%dx%d device=%p world=%d centerUI=%d backgrounds=%d\n",ok?"OK":"FAILED",width.load(),height.load(),targetDevice,widenWorld,centerUi,fillBackgrounds);std::fflush(journal);return ok?0:6;
+ std::fprintf(journal,"Pirates! Unbound 0.1.0-beta.2 init=%s size=%dx%d device=%p world=%d centerUI=%d backgrounds=%d\n",ok?"OK":"FAILED",width.load(),height.load(),targetDevice,widenWorld,centerUi,fillBackgrounds);std::fflush(journal);return ok?0:6;
 }
 BOOL WINAPI DllMain(HMODULE h,DWORD reason,LPVOID){if(reason==DLL_PROCESS_ATTACH){self=h;DisableThreadLibraryCalls(h);HANDLE t=CreateThread(nullptr,0,init,nullptr,0,nullptr);if(t)CloseHandle(t);}return TRUE;}

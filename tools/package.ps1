@@ -1,4 +1,4 @@
-param([switch]$Force)
+param([switch]$Force,[string]$OutputDirectory)
 $ErrorActionPreference='Stop'
 $project=Split-Path $PSScriptRoot -Parent
 $version=(Get-Content -LiteralPath (Join-Path $project 'VERSION') -Raw).Trim()
@@ -10,7 +10,7 @@ if(!(Test-Path -LiteralPath (Join-Path $build 'layout-only.build'))){throw 'Miss
 foreach($entry in $info.files.PSObject.Properties){
  if((Get-FileHash -LiteralPath (Join-Path $build $entry.Name) -Algorithm SHA256).Hash -ne $entry.Value){throw "Build artifact changed: $($entry.Name)"}
 }
-$dist=[IO.Path]::GetFullPath((Join-Path $project 'dist'))
+$dist=if($OutputDirectory){[IO.Path]::GetFullPath($OutputDirectory)}else{[IO.Path]::GetFullPath((Join-Path $project 'dist'))}
 $source=Join-Path $dist 'github\Pirates-Unbound'
 $binary=Join-Path $dist "windows\Pirates-Unbound-v$version"
 $windowsZip=Join-Path $dist "Pirates-Unbound-v$version-Windows.zip"

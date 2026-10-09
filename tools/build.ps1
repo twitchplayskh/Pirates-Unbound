@@ -34,6 +34,10 @@ if($LASTEXITCODE){throw 'Mode checker compile failed'}
 if($LASTEXITCODE){throw 'Coordinate tests compile failed'}
 & "$out\test-coordinates.exe"
 if($LASTEXITCODE){throw 'Coordinate tests failed'}
+& $compiler "-specs=$specsPath" -std=c++17 -O2 -Wall -static "-I$minhook\include" "$project\tests\map-expansion.cpp" "$out\buffer.o" "$out\hook.o" "$out\trampoline.o" "$out\hde32.o" -ld3d9 -luser32 -lwinpthread -o "$out\test-map-expansion.exe"
+if($LASTEXITCODE){throw 'Map tests compile failed'}
+& "$out\test-map-expansion.exe"
+if($LASTEXITCODE){throw 'Map tests failed'}
 & $compiler "-specs=$specsPath" -std=c++17 -O2 -Wall -static "$project\tests\sailing-transient.cpp" -o "$out\test-sailing-transient.exe"
 if($LASTEXITCODE){throw 'Transient redraw test compile failed'}
 & "$out\test-sailing-transient.exe"
@@ -48,13 +52,17 @@ if($LASTEXITCODE){throw 'MSAA test compile failed'}
 & "$out\test-antialiasing.exe"
 if($LASTEXITCODE){throw 'MSAA tests failed'}
 $csharp=Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319\csc.exe'
-& $csharp /nologo /target:winexe /platform:x86 "/out:$out\PiratesWideLauncher.exe" /reference:System.Windows.Forms.dll /reference:System.Drawing.dll "$project\launcher\Launcher.cs" "$project\launcher\Controls.cs"
+& $compiler "-specs=$specsPath" -std=c++17 -O2 -Wall -static "$project\tests\texture-filtering.cpp" -o "$out\test-texture-filtering.exe" -ld3d9 -luser32
+if($LASTEXITCODE){throw 'Texture filtering test compile failed'}
+& "$out\test-texture-filtering.exe"
+if($LASTEXITCODE){throw 'Texture filtering tests failed'}
+& $csharp /nologo /target:winexe /platform:x86 "/out:$out\PiratesWideLauncher.exe" /reference:System.Windows.Forms.dll /reference:System.Drawing.dll "$project\launcher\Launcher.cs" "$project\launcher\Controls.cs" "$project\launcher\Filtering.cs"
 if($LASTEXITCODE){throw 'Launcher compile failed'}
 $launcherTest=Start-Process -FilePath "$out\PiratesWideLauncher.exe" -ArgumentList '--self-test' -WindowStyle Hidden -Wait -PassThru
 if($launcherTest.ExitCode){throw 'Launcher tests failed'}
 Get-Content -LiteralPath "$out\launcher-tests.log"
 Write-Output "Built x86 widescreen runtime and Windows launcher in $out"
 if($LayoutOnly){[IO.File]::WriteAllText((Join-Path $out 'layout-only.build'),'Public layout build; unfinished sailing FPS hooks disabled.')}elseif(Test-Path -LiteralPath (Join-Path $out 'layout-only.build')){Remove-Item -LiteralPath (Join-Path $out 'layout-only.build')}
-$buildInfo=@{version='0.1.0-beta.1';layoutOnly=[bool]$LayoutOnly;mapWidthTrial=$false;target=$target;files=@{}}
+$buildInfo=@{version=(Get-Content -LiteralPath (Join-Path $project 'VERSION') -Raw).Trim();layoutOnly=[bool]$LayoutOnly;mapWidthTrial=$false;target=$target;files=@{}}
 foreach($name in @('PiratesWide.dll','PiratesWideLauncher.exe','inject.exe','check-mode.exe','MinHook-LICENSE.txt')){$buildInfo.files[$name]=(Get-FileHash -LiteralPath (Join-Path $out $name) -Algorithm SHA256).Hash}
 $buildInfo | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $out 'build-info.json') -Encoding UTF8

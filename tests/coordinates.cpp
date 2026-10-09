@@ -78,5 +78,20 @@ int main(){
   for(unsigned k=1;k<4;++k){assert(qa[k]==pa[k]);assert(qb[k]==pb[k]);checks+=2;}
   assert(std::memcmp(&projection,&moved,sizeof(projection))!=0);checks+=3;
  }
- std::printf("Passed %u coordinate/frustum/town checks, including 3840x2160, ultrawide and disabled options.\n",checks);
+ // Captured recruitment masks must match; similarly coloured UI must not.
+ CinematicBarVertex mask[]={{-321,0,-20,0xff000000,0,0},{321,0,-20,0xff000000,0,0},{-321,0,20,0xff000000,0,0},{321,0,20,0xff000000,0,0}};
+ D3DMATRIX maskWorld{};maskWorld._11=maskWorld._22=maskWorld._33=maskWorld._44=1;
+ for(float placement:{221.f,-222.f}){
+  maskWorld._43=placement;maskWorld._42=-.02f;
+  assert(cinematicBarGeometry(mask,maskWorld));++checks;
+  auto other=maskWorld;other._43=0;assert(!cinematicBarGeometry(mask,other));++checks;
+  other=maskWorld;other._11=1.01f;assert(!cinematicBarGeometry(mask,other));++checks;
+  other=maskWorld;other._41=1;assert(!cinematicBarGeometry(mask,other));++checks;
+  other=maskWorld;other._42=NAN;assert(!cinematicBarGeometry(mask,other));++checks;
+  mask[0].color=0xff010000;assert(!cinematicBarGeometry(mask,maskWorld));++checks;mask[0].color=0xff000000;
+  mask[0].z=-121;assert(!cinematicBarGeometry(mask,maskWorld));++checks;mask[0].z=-20;
+  mask[0].x=NAN;assert(!cinematicBarGeometry(mask,maskWorld));++checks;mask[0].x=-321;
+  auto corner=mask[0];mask[0]=mask[1];assert(!cinematicBarGeometry(mask,maskWorld));++checks;mask[0]=corner;
+ }
+ std::printf("Passed %u coordinate/frustum/town/cinematic checks, including 3840x2160, ultrawide and disabled options.\n",checks);
 }
